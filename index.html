@@ -30,11 +30,34 @@
             border: 1px solid #334155; /* Dyskretna ramka graniczna separująca aplikację od tła ekranu */
         }
         
+        /* Nagłówek główny programu z układem Flexbox dla tytułu i rewizji */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 15px;
+        }
+
         /* Tytuł główny programu */
         h1 { 
-            text-align: center;        /* Centrowanie tekstu nagłówka */
+            margin: 0;
             color: #f8fafc;            /* Czysta, śnieżna biel dla maksymalnego wyróżnienia tytułu */
-            margin-bottom: 25px;       /* Margines oddzielający tytuł od panelu kontrolnego */
+            font-size: 26px;
+        }
+
+        /* Oznaczenie numeru rewizji strony */
+        .revision-badge {
+            background: #0284c7;
+            color: #f8fafc;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: monospace;
+            border: 1px solid #38bdf8;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
         
         /* Górny panel sterowania (Grupowanie kontrolek wejściowych) */
@@ -163,7 +186,7 @@
         .chart-container { 
             position: relative;        /* Wymóg Chart.js do poprawnego skalowania i pozycjonowania wykresu */
             margin-top: 15px;          /* Odstęp górny od tytułu sekcji */
-            margin-bottom: 35px;       /* Odstęp dolny od następnego elementu */
+            margin-bottom: 10px;       /* Odstęp dolny od panelu ręcznego skalowania osi */
             height: 400px;             /* Stała, czytelna wysokość robocza obszaru wykresu */
             background: #0f172a;       /* Czarne tło bezpośrednio pod wykresem */
             padding: 10px;             /* Wewnętrzny margines bezpieczeństwa dla osi wykresu */
@@ -187,6 +210,44 @@
         .btn-reset-zoom { background-color: #334155; color: #f8fafc; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: 1px solid #475569; }
         .btn-reset-zoom:hover { background-color: #475569; }
         
+        /* Panel sterowania ręcznym zakresem osi X i Y pod wykresami */
+        .axis-control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            background: #0f172a;
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            margin-bottom: 35px;
+            font-size: 12px;
+        }
+
+        .axis-control-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .axis-control-group label {
+            margin-bottom: 0;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+
+        .axis-control-group input {
+            width: 75px;
+            padding: 4px 6px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .axis-control-panel button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
         /* Miejsce wyświetlania komunikatów o krytycznych błędach (np. uszkodzony plik) */
         #errorLog { color: #f87171; font-weight: bold; margin-top: 10px; text-align: center; }
         /* Tekst powiadomienia o sukcesie (np. po poprawnym dodaniu nowego uchybu) */
@@ -196,7 +257,11 @@
 <body>
 
 <div class="container">
-    <h1>Analizator FFT z logów Blackboxa</h1>
+    <!-- Pasek nagłówka z umieszczonym numerem rewizji strony -->
+    <div class="header-container">
+        <h1>Analizator FFT z logów Blackboxa</h1>
+        <div class="revision-badge">v1.2</div>
+    </div>
     
     <div class="input-group">
         <div class="form-control">
@@ -254,6 +319,7 @@
 
     <div id="errorLog"></div>
 
+    <!-- WYKRES 1: WIDMO CZĘSTOTLIWOŚCIOWE (FFT) -->
     <div class="chart-title" id="titleFFT" style="display:none;">
         <span>Analiza Widma Częstotliwościowego (FFT)</span>
         <button class="btn-reset-zoom" onclick="resetZoomFFT()">Resetuj powiększenie</button>
@@ -261,7 +327,22 @@
     <div class="chart-container" id="containerFFT" style="display:none;">
         <canvas id="fftChart"></canvas>
     </div>
+    <!-- Panel ręcznego sterowania zakresem osi Wykresu 1 -->
+    <div class="axis-control-panel" id="panelFFT" style="display:none;">
+        <strong style="color:#38bdf8;">Zakres osi FFT:</strong>
+        <div class="axis-control-group">
+            <label>X min:</label><input type="number" id="fftXMin" placeholder="Auto" step="any">
+            <label>X max:</label><input type="number" id="fftXMax" placeholder="Auto" step="any">
+        </div>
+        <div class="axis-control-group" style="margin-left: 15px;">
+            <label>Y min:</label><input type="number" id="fftYMin" placeholder="Auto" step="any">
+            <label>Y max:</label><input type="number" id="fftYMax" placeholder="Auto" step="any">
+        </div>
+        <button style="background-color:#0284c7; margin-left:10px;" onclick="applyFFTAxisLimits()">Zastosuj zakres</button>
+        <button style="background-color:#334155; color:#cbd5e1;" onclick="resetFFTAxisLimits()">Auto (Reset)</button>
+    </div>
 
+    <!-- WYKRES 2: PRZEBIEG CZASOWY SYGNAŁÓW -->
     <div class="chart-title" id="titleTime" style="display:none;">
         <span>Przebieg sygnałów w dziedzinie czasu</span>
         <button class="btn-reset-zoom" onclick="resetZoomTime()">Resetuj powiększenie</button>
@@ -269,18 +350,47 @@
     <div class="chart-container" id="containerTime" style="display:none;">
         <canvas id="timeChart"></canvas>
     </div>
+    <!-- Panel ręcznego sterowania zakresem osi Wykresu 2 -->
+    <div class="axis-control-panel" id="panelTime" style="display:none;">
+        <strong style="color:#38bdf8;">Zakres osi Czasowej:</strong>
+        <div class="axis-control-group">
+            <label>X min (ms):</label><input type="number" id="timeXMin" placeholder="Auto" step="any">
+            <label>X max (ms):</label><input type="number" id="timeXMax" placeholder="Auto" step="any">
+        </div>
+        <div class="axis-control-group" style="margin-left: 15px;">
+            <label>Y min:</label><input type="number" id="timeYMin" placeholder="Auto" step="any">
+            <label>Y max:</label><input type="number" id="timeYMax" placeholder="Auto" step="any">
+        </div>
+        <button style="background-color:#0284c7; margin-left:10px;" onclick="applyTimeAxisLimits()">Zastosuj zakres</button>
+        <button style="background-color:#334155; color:#cbd5e1;" onclick="resetTimeAxisLimits()">Auto (Reset)</button>
+    </div>
 
     <div class="stats-section" id="statsSection">
         <h3>Podstawowe wskaźniki jakości regulacji i agregaty:</h3>
         <div class="stats-grid" id="statsGrid"></div>
     </div>
 
+    <!-- WYKRES 3: ANALIZA STABILNOŚCI CZASU (JITTER) -->
     <div class="chart-title" id="titleJitter" style="display:none;">
         <span>Analiza stabilności czasu rzeczywistego (Jitter pętli regulatora)</span>
         <button class="btn-reset-zoom" onclick="resetZoomJitter()">Resetuj powiększenie</button>
     </div>
     <div class="chart-container" id="containerJitter" style="display:none;">
         <canvas id="jitterChart"></canvas>
+    </div>
+    <!-- Panel ręcznego sterowania zakresem osi Wykresu 3 -->
+    <div class="axis-control-panel" id="panelJitter" style="display:none;">
+        <strong style="color:#38bdf8;">Zakres osi Jitteru:</strong>
+        <div class="axis-control-group">
+            <label>X min (ms):</label><input type="number" id="jitterXMin" placeholder="Auto" step="any">
+            <label>X max (ms):</label><input type="number" id="jitterXMax" placeholder="Auto" step="any">
+        </div>
+        <div class="axis-control-group" style="margin-left: 15px;">
+            <label>Y min (ms):</label><input type="number" id="jitterYMin" placeholder="Auto" step="any">
+            <label>Y max (ms):</label><input type="number" id="jitterYMax" placeholder="Auto" step="any">
+        </div>
+        <button style="background-color:#0284c7; margin-left:10px;" onclick="applyJitterAxisLimits()">Zastosuj zakres</button>
+        <button style="background-color:#334155; color:#cbd5e1;" onclick="resetJitterAxisLimits()">Auto (Reset)</button>
     </div>
 </div>
 
@@ -609,14 +719,20 @@
      * po czym sekwencyjnie uruchamia dedykowane silniki obliczeniowo-renderujące dla każdego modułu.
      */
     function processAll() {
-        // Odkrycie wszystkich ukrytych sekcji wykresów i statystyk w strukturze HTML (CSS display: none -> flex/block)
+        // Odkrycie wszystkich ukrytych sekcji wykresów, paneli sterowania oraz statystyk w strukturze HTML
         document.getElementById('titleFFT').style.display = 'flex';
         document.getElementById('containerFFT').style.display = 'block';
+        document.getElementById('panelFFT').style.display = 'flex';
+
         document.getElementById('titleTime').style.display = 'flex';
         document.getElementById('containerTime').style.display = 'block';
+        document.getElementById('panelTime').style.display = 'flex';
+
         document.getElementById('statsSection').style.display = 'block'; 
+
         document.getElementById('titleJitter').style.display = 'flex'; 
         document.getElementById('containerJitter').style.display = 'block';
+        document.getElementById('panelJitter').style.display = 'flex';
 
         // Wywołanie niezależnych modułów diagnostycznych
         processFFT();              // Moduł 1: Transformacja Fouriera i analiza częstotliwościowa
@@ -710,7 +826,7 @@
                 borderColor: lineColors[index % lineColors.length], // Przypisanie kolejnego koloru z unikalnej palety neonowej
                 backgroundColor: 'transparent', // Brak wypełnienia obszaru pod linią (zapewnia przejrzystość)
                 borderWidth: 1.5,               // Grubość rysowanej linii przebiegu
-                pointRadius: 0,                 // WYDAJNOŚĆ: Wyłączenie rysowania kropek dla każdego z tysięcy punktów (drastycznie przyspiesza renderowanie!)
+                pointRadius: 0,                 // WYDAJNOŚĆ: Wyłączenie rysowania kropek dla każdego z tysięcy punktów (drastically przyspiesza renderowanie!)
                 pointHoverRadius: 4,            // Kropka pomiarowa ujawnia się dopiero wtedy, gdy użytkownik najedzie myszą bezpośrednio na linię sygnału
                 tension: 0.05                   // Delikatne wygładzenie załamań linii wykresu
             });
@@ -828,6 +944,28 @@
         const ctx = document.getElementById('fftChart').getContext('2d');
         if (fftChartInstance) fftChartInstance.destroy(); // Bezpieczne czyszczenie RAM - niszczenie starej instancji przed nadpisaniem
         
+        // Odczytanie ewentualnych ręcznych wartości granicznych osi wyznaczonych przez użytkownika
+        const xMinVal = parseFloat(document.getElementById('fftXMin').value);
+        const xMaxVal = parseFloat(document.getElementById('fftXMax').value);
+        const yMinVal = parseFloat(document.getElementById('fftYMin').value);
+        const yMaxVal = parseFloat(document.getElementById('fftYMax').value);
+
+        const xScaleObj = Object.assign({ 
+            type: 'linear', 
+            title: { display: true, text: 'Częstotliwość (Hz)', color: '#cbd5e1' }, 
+            ticks: { callback: function(v) { return Math.round(v); }, color: '#94a3b8' } 
+        }, darkScaleConfig);
+
+        const yScaleObj = Object.assign({ 
+            title: { display: true, text: 'Amplituda', color: '#cbd5e1' }, 
+            beginAtZero: isNaN(yMinVal) 
+        }, darkScaleConfig);
+
+        if (!isNaN(xMinVal)) xScaleObj.min = xMinVal;
+        if (!isNaN(xMaxVal)) xScaleObj.max = xMaxVal;
+        if (!isNaN(yMinVal)) yScaleObj.min = yMinVal;
+        if (!isNaN(yMaxVal)) yScaleObj.max = yMaxVal;
+
         fftChartInstance = new Chart(ctx, {
             type: 'line', // Wykres liniowy
             data: {
@@ -844,10 +982,8 @@
                 responsive: true, maintainAspectRatio: false, // Elastyczne rozciąganie wykresu do pełnych rozmiarów kontenera div
                 interaction: { mode: 'index', intersect: false }, // Wyświetlanie etykiety pomocniczej po najechaniu w pionie
                 scales: {
-                    // Konfiguracja osi poziomej X częstotliwości (łączenie obiektów za pomocą Object.assign)
-                    x: Object.assign({ type: 'linear', title: { display: true, text: 'Częstotliwość (Hz)', color: '#cbd5e1' }, ticks: { callback: function(v) { return Math.round(v); }, color: '#94a3b8' } }, darkScaleConfig),
-                    // Konfiguracja osi pionowej Y amplitudy harmonicznych
-                    y: Object.assign({ title: { display: true, text: 'Amplituda', color: '#cbd5e1' }, beginAtZero: true }, darkScaleConfig)
+                    x: xScaleObj,
+                    y: yScaleObj
                 },
                 plugins: {
                     // Aktywacja silnika powiększeń i przesuwania wykresu kółkiem myszy
@@ -879,19 +1015,30 @@
         const ctx = document.getElementById('timeChart').getContext('2d');
         if (timeChartInstance) timeChartInstance.destroy(); // Zwolnienie zasobów pamięci operacyjnej przed nowym rysowaniem
         
+        // Odczytanie ewentualnych ręcznych wartości granicznych osi wyznaczonych przez użytkownika
+        const xMinVal = parseFloat(document.getElementById('timeXMin').value);
+        const xMaxVal = parseFloat(document.getElementById('timeXMax').value);
+        const yMinVal = parseFloat(document.getElementById('timeYMin').value);
+        const yMaxVal = parseFloat(document.getElementById('timeYMax').value);
+
+        const xScaleObj = Object.assign({ type: 'linear', title: { display: true, text: 'Czas (Timestamp / ms)', color: '#cbd5e1' } }, darkScaleConfig);
+        const yScaleObj = Object.assign({ title: { display: true, text: 'Wartość', color: '#cbd5e1' } }, darkScaleConfig);
+
+        if (!isNaN(xMinVal)) xScaleObj.min = xMinVal;
+        if (!isNaN(xMaxVal)) xScaleObj.max = xMaxVal;
+        if (!isNaN(yMinVal)) yScaleObj.min = yMinVal;
+        if (!isNaN(yMaxVal)) yScaleObj.max = yMaxVal;
+
         timeChartInstance = new Chart(ctx, {
             type: 'line',
             data: { labels: labels, datasets: datasets }, // Wstrzyknięcie tablicy wielu serii wygenerowanej dynamicznie
             options: {
                 responsive: true, maintainAspectRatio: false,
-                // KRYTYCZNA OPTYMALIZACJA WYDAJNOŚCIOWA (DECIMATION): 
-                // Wykorzystuje zaawansowany algorytm LTTB (Largest-Triangle-Three-Buckets). Próbkuje w locie miliony rekordów z wielkich logów, 
-                // redukując liczbę rysowanych pikseli bez utraty charakterystycznych pików i kształtu sygnału. Zapobiega zawieszaniu się przeglądarki!
                 stats: { decimation: { enabled: true, algorithm: 'lttb' } }, 
                 interaction: { mode: 'index', intersect: false },
                 scales: {
-                    x: Object.assign({ type: 'linear', title: { display: true, text: 'Czas (Timestamp / ms)', color: '#cbd5e1' } }, darkScaleConfig),
-                    y: Object.assign({ title: { display: true, text: 'Wartość', color: '#cbd5e1' } }, darkScaleConfig)
+                    x: xScaleObj,
+                    y: yScaleObj
                 },
                 plugins: {
                     zoom: { 
@@ -914,6 +1061,20 @@
         const ctx = document.getElementById('jitterChart').getContext('2d');
         if (jitterChartInstance) jitterChartInstance.destroy(); // Zabezpieczenie przed wyciekiem pamięci RAM
         
+        // Odczytanie ewentualnych ręcznych wartości granicznych osi wyznaczonych przez użytkownika
+        const xMinVal = parseFloat(document.getElementById('jitterXMin').value);
+        const xMaxVal = parseFloat(document.getElementById('jitterXMax').value);
+        const yMinVal = parseFloat(document.getElementById('jitterYMin').value);
+        const yMaxVal = parseFloat(document.getElementById('jitterYMax').value);
+
+        const xScaleObj = Object.assign({ type: 'linear', title: { display: true, text: 'Czas od początku logu (ms)', color: '#cbd5e1' } }, darkScaleConfig);
+        const yScaleObj = Object.assign({ title: { display: true, text: 'Czas wykonania pętli (ms)', color: '#cbd5e1' }, beginAtZero: isNaN(yMinVal) }, darkScaleConfig);
+
+        if (!isNaN(xMinVal)) xScaleObj.min = xMinVal;
+        if (!isNaN(xMaxVal)) xScaleObj.max = xMaxVal;
+        if (!isNaN(yMinVal)) yScaleObj.min = yMinVal;
+        if (!isNaN(yMaxVal)) yScaleObj.max = yMaxVal;
+
         jitterChartInstance = new Chart(ctx, {
             type: 'line',
             data: {
@@ -930,8 +1091,8 @@
                 responsive: true, maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 scales: {
-                    x: Object.assign({ type: 'linear', title: { display: true, text: 'Czas od początku logu (ms)', color: '#cbd5e1' } }, darkScaleConfig),
-                    y: Object.assign({ title: { display: true, text: 'Czas wykonania pętli (ms)', color: '#cbd5e1' }, beginAtZero: true }, darkScaleConfig)
+                    x: xScaleObj,
+                    y: yScaleObj
                 },
                 plugins: {
                     zoom: { 
@@ -942,6 +1103,47 @@
                 }
             }
         });
+    }
+
+    /* --- LOGIKA ZARZĄDZANIA RĘCZNYM SKALOWANIEM OSI (MANUAL AXIS LIMITS) --- */
+
+    function applyFFTAxisLimits() {
+        processFFT();
+    }
+
+    function resetFFTAxisLimits() {
+        document.getElementById('fftXMin').value = '';
+        document.getElementById('fftXMax').value = '';
+        document.getElementById('fftYMin').value = '';
+        document.getElementById('fftYMax').value = '';
+        processFFT();
+        resetZoomFFT();
+    }
+
+    function applyTimeAxisLimits() {
+        processTimeDomainAndStats();
+    }
+
+    function resetTimeAxisLimits() {
+        document.getElementById('timeXMin').value = '';
+        document.getElementById('timeXMax').value = '';
+        document.getElementById('timeYMin').value = '';
+        document.getElementById('timeYMax').value = '';
+        processTimeDomainAndStats();
+        resetZoomTime();
+    }
+
+    function applyJitterAxisLimits() {
+        processJitterAnalysis();
+    }
+
+    function resetJitterAxisLimits() {
+        document.getElementById('jitterXMin').value = '';
+        document.getElementById('jitterXMax').value = '';
+        document.getElementById('jitterYMin').value = '';
+        document.getElementById('jitterYMax').value = '';
+        processJitterAnalysis();
+        resetZoomJitter();
     }
 
     // Proste funkcje wywoływane kliknięciem przycisków resetu: przywracają oryginalną skalę wykresu (100% szerokości logu) po zoomowaniu
