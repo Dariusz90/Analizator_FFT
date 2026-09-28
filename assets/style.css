@@ -49,42 +49,42 @@ h1 {
 	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Górny panel sterowania (Grupowanie kontrolek wejściowych) */
+/* Górny panel sterowania (Grupowanie kontrolek wejściowych) - ZMIEJSZONY PADDING I GAP */
 .input-group {
-	display: flex;             /* Elastyczny układ elementów obok siebie (Flexbox) */
-	flex-wrap: wrap;           /* W razie braku miejsca na ekranie, kontrolki automatycznie przejdą do nowego wiersza */
-	gap: 20px;                 /* Odstępy (pomiędzy) poszczególnymi elementami formularza */
-	margin-bottom: 25px;       /* Przestrzeń pod panelem kontrolnym */
-	background: #1e293b;       /* Kolor spójny z kontenerem głównym */
-	padding: 20px;             /* Wewnętrzne odsunięcie elementów */
-	border-radius: 8px;        /* Zaokrąglenie narożników panelu */
-	border: 1px solid #475569; /* Jaśniejsza ramka wokół sekcji wyboru pliku */
+    display: flex;             /* Elastyczny układ elementów obok siebie (Flexbox) */
+    flex-wrap: wrap;           /* W razie braku miejsca na ekranie, kontrolki automatycznie przejdą do nowego wiersza */
+    gap: 15px;                 /* Odstępy (pomiędzy) poszczególnymi elementami formularza (zmniejszone z 20px) */
+    margin-bottom: 20px;       /* Przestrzeń pod panelem kontrolnym (zmniejszona z 25px) */
+    background: #1e293b;       /* Kolor spójny z kontenerem głównym */
+    padding: 12px 18px;        /* Wewnętrzne odsunięcie elementów (zmniejszone z 20px) */
+    border-radius: 8px;        /* Zaokrąglenie narożników panelu */
+    border: 1px solid #475569; /* Jaśniejsza ramka wokół sekcji wyboru pliku */
 }
 
 /* Pojedynczy boks sterujący (Etykieta + Pole tekstowe/wyboru) */
 .form-control {
-	display: flex;             /* Włączenie elastycznego dopasowania wewnętrznego */
-	flex-direction: column;    /* Elementy wewnątrz (np. opis i select) układają się pionowo, jeden pod drugim */
-	flex: 1;                   /* Automatyczne rozciąganie szerokości pól, aby równomiernie zapełnić wiersz */
-	min-width: 220px;          /* Minimalna szerokość, poniżej której boks przeskoczy do nowej linii */
+    display: flex;             /* Włączenie elastycznego dopasowania wewnętrznego */
+    flex-direction: column;    /* Elementy wewnątrz układają się pionowo */
+    flex: 1;                   /* Automatyczne rozciąganie szerokości pól */
+    min-width: 200px;          /* Minimalna szerokość, poniżej której boks przeskoczy do nowej linii */
 }
 
-/* Etykiety opisowe nad polami wyboru */
+/* Etykiety opisowe nad polami wyboru - ZMNIEJSZONY MARGINES DOLNY */
 label { 
-	font-weight: 600;          /* Pogrubienie czcionki etykiet dla lepszej czytelności */
-	margin-bottom: 8px;        /* Odstęp oddzielający tekst opisu od właściwego pola input/select */
-	font-size: 14px;           /* Rozmiar czcionki opisu */
-	color: #94a3b8;            /* Stonowany, pastelowo-szary kolor tekstu (Slate 400) */
+    font-weight: 600;          /* Pogrubienie czcionki etykiet dla lepszej czytelności */
+    margin-bottom: 4px;        /* Zmniejszony odstęp od pola input/select (z 8px do 4px) */
+    font-size: 13px;           /* Lekko zmniejszony rozmiar czcionki (z 14px do 13px) */
+    color: #94a3b8;            /* Stonowany, pastelowo-szary kolor tekstu */
 }
 
-/* Wspólne style dla pól wprowadzania danych, list rozwijanych i przycisków */
+/* Wspólne style dla pól wprowadzania danych, list rozwijanych i przycisków - BARDZIEJ ZWARTE POLA */
 input, select, button {
-	padding: 10px 12px;        /* Ergonomiczne poduszki wewnętrzne (wygodne klikanie) */
-	border: 1px solid #475569; /* Kolor obwódki elementów formularza */
-	border-radius: 6px;        /* Lekkie zaokrąglenie krawędzi pól */
-	font-size: 14px;           /* Rozmiar tekstu wewnątrz kontrolek */
-	background: #0f172a;       /* Kontrastowe, bardzo ciemne tło wnętrza pól (Slate 900) */
-	color: #f8fafc;            /* Jasny kolor czcionki tekstu wpisywanego lub wybieranego */
+    padding: 6px 10px;         /* Bardziej kompaktowe poduszki wewnętrzne (zmniejszone z 10px 12px) */
+    border: 1px solid #475569; /* Kolor obwódki elementów formularza */
+    border-radius: 6px;        /* Lekkie zaokrąglenie krawędzi pól */
+    font-size: 13px;           /* Dopasowany rozmiar tekstu wewnątrz kontrolek */
+    background: #0f172a;       /* Kontrastowe, bardzo ciemne tło wnętrza pól */
+    color: #f8fafc;            /* Jasny kolor czcionki */
 }
 
 /* Efekt wizualny w momencie aktywacji/kliknięcia wewnątrz pola tekstowego lub listy */
@@ -112,7 +112,11 @@ button:disabled {
 }
 
 /* Małe podpisy informacyjne pod polami */
-.info-box { font-size: 13px; color: #94a3b8; margin-top: 5px; }
+.info-box { 
+    font-size: 11px;           /* Zmniejszona czcionka informacji (z 13px na 11px) */
+    color: #94a3b8; 
+    margin-top: 3px; 
+}
 
 /* Wspólna klasa dla wszystkich bloków rozwijanych dynamicznie po załadowaniu danych */
 .params-section, .creator-section, .checkbox-section, .stats-section {

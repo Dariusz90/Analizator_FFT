@@ -6,27 +6,33 @@
     <title>Analizator FFT z logów Blackboxa</title>
     
     <!-- POBIERANIE BIBLIOTEK ZEWNĘTRZNYCH -->
+    <!-- Chart.js: Odpowiada za tworzenie dynamicznych, responsywnych wykresów w elemencie HTML5 Canvas -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- chartjs-plugin-zoom: Rozszerzenie umożliwiające płynne powiększanie (zoom) oraz przesuwanie (pan) osi czasu przy użyciu myszy/gestów -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
     
-    <!-- LOKALNE STYLE I LOGIKA APLIKACJI -->
+    <!-- LOKALNE STYLE I LOGIKA APLIKACJI (STRUKTURA MODUŁOWA ASSETS) -->
     <link rel="stylesheet" href="./assets/style.css">
     <script defer src="./assets/app.js"></script>
 </head>
 <body>
 
 <div class="container">
+    <!-- Pasek nagłówka z umieszczonym numerem rewizji strony -->
     <div class="header-container">
         <h1>Analizator FFT z logów Blackboxa</h1>
         <div class="revision-badge">v1.3</div>
     </div>
     
+    <!-- GŁÓWNY PANEL KONTROLNY -->
     <div class="input-group">
+        <!-- Komponent wyboru pliku wejściowego z dysku komputera -->
         <div class="form-control">
             <label for="excelFile">Wybierz plik z logami (.csv):</label>
             <input type="file" id="excelFile" accept=".csv">
         </div>
 
+        <!-- Lista rozwijana służąca do wskazania sygnału poddawanego transformacie FFT -->
         <div class="form-control">
             <label for="columnSelect">Kolumna do analizy FFT (oraz uchyby):</label>
             <select id="columnSelect" disabled>
@@ -34,49 +40,65 @@
             </select>
         </div>
 
+        <!-- Pole konfiguracji częstotliwości próbkowania z opcją przełączenia na stałą wartość wyznaczoną ręcznie -->
         <div class="form-control">
             <label for="sampleRate">Częstotliwość próbkowania (Hz):</label>
             <input type="number" id="sampleRate" value="1000" min="0.1" step="any">
+            <div style="margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+                <input type="checkbox" id="manualFsCheck" style="width: 15px; height: 15px; cursor: pointer;">
+                <label for="manualFsCheck" style="margin-bottom: 0; font-size: 12px; cursor: pointer; color: #38bdf8;">Wpisz ręcznie (ignoruj Timestamp)</label>
+            </div>
             <div class="info-box" id="fsInfo">Zostanie obliczona automatycznie</div>
         </div>
         
+        <!-- Główny przycisk uruchamiający wszystkie kalkulatory matematyczne i rysowanie -->
         <div class="form-control" style="justify-content: flex-end;">
             <button id="processBtn" disabled>Generuj Pełną Analizę</button>
         </div>
     </div>
 
+    <!-- KREATOR WIRTUALNYCH UCHYBÓW REGULACJI -->
     <div class="creator-section" id="creatorSection">
         <h3>🛠️ Kreator Uchybu Regulacji (Zdefiniuj własne porównanie):</h3>
         <div class="creator-row">
+            <!-- Wybór kolumny reprezentującej wartość zadaną (np. sygnał docelowy z oprogramowania) -->
             <div class="form-control" style="min-width: 250px;">
                 <label for="spSelect">Wartość zadana (Setpoint / SP):</label>
                 <select id="spSelect"></select>
             </div>
+            <!-- Wybór kolumny reprezentującej fizyczną wartość odebraną ze sterownika/czujnika -->
             <div class="form-control" style="min-width: 250px;">
                 <label for="rSelect">Wartość rzeczywista (Measured / Real):</label>
                 <select id="rSelect"></select>
             </div>
+            <!-- Dowolna nazwa wprowadzona przez użytkownika (np. Uchyb Pozycji Serwa X) -->
             <div class="form-control" style="min-width: 200px;">
                 <label for="errorName">Nazwa własna uchybu:</label>
                 <input type="text" id="errorName" value="Uchyb Osi 1">
             </div>
+            <!-- Przycisk wykonawczy kalkulacji nowego sygnału wirtualnego -->
             <button id="addErrorBtn" style="background-color: #0284c7; height: 42px;">+ Dodaj ten uchyb</button>
         </div>
+        <!-- Miejsce na komunikat zwrotny o pomyślnym dodaniu serii danych -->
         <div class="success-msg" id="creatorFeedback"></div>
     </div>
 
+    <!-- Sekcja parametrów urządzenia wyciętych z nagłówka pliku -->
     <div class="params-section" id="paramsSection">
         <h3>Ustawienia parametrów konfiguracyjnych logu:</h3>
         <div class="params-grid" id="paramsGrid"></div>
     </div>
 
+    <!-- Wybór sygnałów do wykresu osi czasu -->
     <div class="checkbox-section" id="checkboxSection">
         <h3>Wybierz kolumny do wyświetlenia na wykresie przebiegu czasowego:</h3>
         <div class="checkbox-grid" id="checkboxGrid"></div>
     </div>
 
+    <!-- Div logiczny do mapowania awarii pliku strukturalnego -->
     <div id="errorLog"></div>
 
+    <!-- WYKRES 1: WIDMO CZĘSTOTLIWOŚCIOWE (FFT) -->
     <div class="chart-title" id="titleFFT" style="display:none;">
         <span>Analiza Widma Częstotliwościowego (FFT)</span>
         <button class="btn-reset-zoom" onclick="resetZoomFFT()">Resetuj powiększenie</button>
@@ -84,6 +106,7 @@
     <div class="chart-container" id="containerFFT" style="display:none;">
         <canvas id="fftChart"></canvas>
     </div>
+    <!-- Panel ręcznego sterowania zakresem osi Wykresu 1 -->
     <div class="axis-control-panel" id="panelFFT" style="display:none;">
         <strong style="color:#38bdf8;">Zakres osi FFT:</strong>
         <div class="axis-control-group">
@@ -98,6 +121,7 @@
         <button style="background-color:#334155; color:#cbd5e1;" onclick="resetFFTAxisLimits()">Auto (Reset)</button>
     </div>
 
+    <!-- WYKRES 2: PRZEBIEG CZASOWY SYGNAŁÓW -->
     <div class="chart-title" id="titleTime" style="display:none;">
         <span>Przebieg sygnałów w dziedzinie czasu</span>
         <button class="btn-reset-zoom" onclick="resetZoomTime()">Resetuj powiększenie</button>
@@ -105,6 +129,7 @@
     <div class="chart-container" id="containerTime" style="display:none;">
         <canvas id="timeChart"></canvas>
     </div>
+    <!-- Panel ręcznego sterowania zakresem osi Wykresu 2 -->
     <div class="axis-control-panel" id="panelTime" style="display:none;">
         <strong style="color:#38bdf8;">Zakres osi Czasowej:</strong>
         <div class="axis-control-group">
@@ -119,11 +144,13 @@
         <button style="background-color:#334155; color:#cbd5e1;" onclick="resetTimeAxisLimits()">Auto (Reset)</button>
     </div>
 
+    <!-- PANEL RAPORTU STATYSTYK -->
     <div class="stats-section" id="statsSection">
         <h3>Podstawowe wskaźniki jakości regulacji i agregaty:</h3>
         <div class="stats-grid" id="statsGrid"></div>
     </div>
 
+    <!-- WYKRES 3: ANALIZA STABILNOŚCI CZASU (JITTER) -->
     <div class="chart-title" id="titleJitter" style="display:none;">
         <span>Analiza stabilności czasu rzeczywistego (Jitter pętli regulatora)</span>
         <button class="btn-reset-zoom" onclick="resetZoomJitter()">Resetuj powiększenie</button>
@@ -131,6 +158,7 @@
     <div class="chart-container" id="containerJitter" style="display:none;">
         <canvas id="jitterChart"></canvas>
     </div>
+    <!-- Panel ręcznego sterowania zakresem osi Wykresu 3 -->
     <div class="axis-control-panel" id="panelJitter" style="display:none;">
         <strong style="color:#38bdf8;">Zakres osi Jitteru:</strong>
         <div class="axis-control-group">
