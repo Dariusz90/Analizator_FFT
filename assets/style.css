@@ -1,0 +1,243 @@
+/* --- ARANŻACJA GRAFICZNA INTERFEJSU W TRYBIE CIEMNYM (CSS DARK MODE) --- */
+
+/* Stylizacja globalna okna przeglądarki */
+body {
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nowoczesna, czytelna czcionka bezszeryfowa */
+	margin: 30px;                                                /* Odstęp marginesu zewnętrznego od krawędzi ekranu */
+	background-color: #0f172a;                                   /* Kolor tła: Bardzo głęboki, grafitowy granat (odpowiednik Slate 900) */
+	color: #e2e8f0;                                              /* Kolor tekstu głównego: Jasny popiel, optymalny dla oczu w nocy */
+}
+
+/* Główny kontener otaczający całą aplikację */
+.container {
+	max-width: 1200px;         /* Maksymalna szerokość robocza aplikacji */
+	margin: 0 auto;            /* Wycentrowanie kontenera w poziomie na środku ekranu */
+	background: #1e293b;       /* Tło kontenera: Nieco jaśniejszy odcień szaro-granatowego (Slate 800) */
+	padding: 30px;             /* Wewnętrzny odstęp od krawędzi kontenera */
+	border-radius: 12px;       /* Zaokrąglenie rogów głównego panelu */
+	box-shadow: 0 4px 20px rgba(0,0,0,0.4); /* Efekt trójwymiarowości - głęboki, ciemny cień pod panelem */
+	border: 1px solid #334155; /* Dyskretna ramka graniczna separująca aplikację od tła ekranu */
+}
+
+/* Nagłówek główny programu z układem Flexbox dla tytułu i rewizji */
+.header-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 25px;
+	border-bottom: 2px solid #334155;
+	padding-bottom: 15px;
+}
+
+/* Tytuł główny programu */
+h1 { 
+	margin: 0;
+	color: #f8fafc;            /* Czysta, śnieżna biel dla maksymalnego wyróżnienia tytułu */
+	font-size: 26px;
+}
+
+/* Oznaczenie numeru rewizji strony */
+.revision-badge {
+	background: #0284c7;
+	color: #f8fafc;
+	padding: 4px 12px;
+	border-radius: 20px;
+	font-size: 13px;
+	font-weight: bold;
+	font-family: monospace;
+	border: 1px solid #38bdf8;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Górny panel sterowania (Grupowanie kontrolek wejściowych) */
+.input-group {
+	display: flex;             /* Elastyczny układ elementów obok siebie (Flexbox) */
+	flex-wrap: wrap;           /* W razie braku miejsca na ekranie, kontrolki automatycznie przejdą do nowego wiersza */
+	gap: 20px;                 /* Odstępy (pomiędzy) poszczególnymi elementami formularza */
+	margin-bottom: 25px;       /* Przestrzeń pod panelem kontrolnym */
+	background: #1e293b;       /* Kolor spójny z kontenerem głównym */
+	padding: 20px;             /* Wewnętrzne odsunięcie elementów */
+	border-radius: 8px;        /* Zaokrąglenie narożników panelu */
+	border: 1px solid #475569; /* Jaśniejsza ramka wokół sekcji wyboru pliku */
+}
+
+/* Pojedynczy boks sterujący (Etykieta + Pole tekstowe/wyboru) */
+.form-control {
+	display: flex;             /* Włączenie elastycznego dopasowania wewnętrznego */
+	flex-direction: column;    /* Elementy wewnątrz (np. opis i select) układają się pionowo, jeden pod drugim */
+	flex: 1;                   /* Automatyczne rozciąganie szerokości pól, aby równomiernie zapełnić wiersz */
+	min-width: 220px;          /* Minimalna szerokość, poniżej której boks przeskoczy do nowej linii */
+}
+
+/* Etykiety opisowe nad polami wyboru */
+label { 
+	font-weight: 600;          /* Pogrubienie czcionki etykiet dla lepszej czytelności */
+	margin-bottom: 8px;        /* Odstęp oddzielający tekst opisu od właściwego pola input/select */
+	font-size: 14px;           /* Rozmiar czcionki opisu */
+	color: #94a3b8;            /* Stonowany, pastelowo-szary kolor tekstu (Slate 400) */
+}
+
+/* Wspólne style dla pól wprowadzania danych, list rozwijanych i przycisków */
+input, select, button {
+	padding: 10px 12px;        /* Ergonomiczne poduszki wewnętrzne (wygodne klikanie) */
+	border: 1px solid #475569; /* Kolor obwódki elementów formularza */
+	border-radius: 6px;        /* Lekkie zaokrąglenie krawędzi pól */
+	font-size: 14px;           /* Rozmiar tekstu wewnątrz kontrolek */
+	background: #0f172a;       /* Kontrastowe, bardzo ciemne tło wnętrza pól (Slate 900) */
+	color: #f8fafc;            /* Jasny kolor czcionki tekstu wpisywanego lub wybieranego */
+}
+
+/* Efekt wizualny w momencie aktywacji/kliknięcia wewnątrz pola tekstowego lub listy */
+input:focus, select:focus { 
+	outline: 2px solid #38bdf8; /* Wyrazista, jasnoniebieska obwódka (Sky Blue) wskazująca aktywny element */
+	border-color: #38bdf8;      /* Zmiana bazowego koloru ramki na jasnoniebieski */
+}
+
+/* Bazowa stylizacja przycisków wykonawczych */
+button {
+	background-color: #059669; /* Kolor tła: Głęboka, czytelna zieleń (Emerald 600) */
+	color: white;              /* Biały tekst na przycisku */
+	border: none;              /* Brak klasycznej, brzydkiej ramki systemowej HTML */
+	cursor: pointer;           /* Zmiana kursora myszy na "rączkę" po najechaniu */
+	font-weight: bold;         /* Dodatkowe pogrubienie napisu na przycisku */
+	transition: background 0.2s, transform 0.1s; /* Płynna animacja zmiany koloru przy najechaniu */
+}
+/* Efekt podświetlenia przycisku po najechaniu kursorem myszy */
+button:hover { background-color: #10b981; }
+/* Styl przycisku w stanie zablokowanym (gdy plik nie jest jeszcze wgrany) */
+button:disabled { 
+	background-color: #334155; /* Zmiana koloru na matowy szary */
+	color: #64748b;            /* Wyblakły tekst informujący o braku aktywności */
+	cursor: not-allowed;       /* Zmiana kursora na ikonę blokady/zakazu */
+}
+
+/* Małe podpisy informacyjne pod polami */
+.info-box { font-size: 13px; color: #94a3b8; margin-top: 5px; }
+
+/* Wspólna klasa dla wszystkich bloków rozwijanych dynamicznie po załadowaniu danych */
+.params-section, .creator-section, .checkbox-section, .stats-section {
+	margin-bottom: 25px;       /* Przestrzeń separująca poszczególne moduły */
+	background: #0f172a;       /* Ciemne tło sekcji (kontrast do kontenera głównego) */
+	border: 1px solid #334155; /* Delikatna ramka strukturalna */
+	padding: 15px 20px;        /* Odstępy wewnętrzne w sekcjach */
+	border-radius: 8px;        /* Zaokrąglenie rogów paneli */
+	display: none;             /* KLUCZOWE: Domyślnie ukryte w HTML. Ukazuje je skrypt JS dopiero po wgraniu pliku CSV */
+}
+
+/* Nagłówki podsekcji (h3) */
+.params-section h3, .creator-section h3, .checkbox-section h3, .stats-section h3 {
+	margin-top: 0;             /* Usunięcie domyślnego, pustego marginesu górnego HTML */
+	margin-bottom: 12px;       /* Przestrzeń pod tytułem sekcji */
+	font-size: 15px;           /* Rozmiar czcionki nagłówka sekcji */
+	color: #cbd5e1;            /* Kolor tekstu nagłówka sekcji */
+	border-bottom: 2px solid #334155; /* Linia oddzielająca podtytuł od zawartości sekcji */
+	padding-bottom: 5px;       /* Odstęp tekstu od linii separującej */
+}
+
+/* Układ elementów wewnątrz Kreatora Uchybów */
+.creator-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+
+/* Układ siatki dla znaczków parametrów maszynowych */
+.params-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+/* Styl pojedynczego parametru wyciętego z nagłówka logu (np. pidAngle.P=60) */
+.param-badge {
+	background: #1e293b;       /* Tło bloczku */
+	color: #38bdf8;            /* Jasnoniebieska, technologiczna czcionka parametru */
+	padding: 6px 12px;         /* Kształt zaokrąglonej pigułki */
+	border-radius: 6px;
+	font-size: 13px;
+	font-family: monospace;    /* Czcionka stałoszerokościowa - idealna do zapisu technicznego */
+	font-weight: bold;
+	border: 1px solid #475569;  /* Obwódka pigułki */
+}
+
+/* Automatyczna wielokolumnowa siatka pól wyboru sygnałów */
+.checkbox-grid {
+	display: grid; 
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Elastyczne kolumny dopasowujące się do szerokości okna */
+	gap: 10px;                 /* Odstępy między checkboxami */
+}
+/* Styl pojedynczego elementu wyboru (Checkbox + Tekst) */
+.checkbox-item { display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer; color: #cbd5e1; }
+/* Nadanie nowoczesnego wyglądu systemowemu ptaszkowi checkboxa */
+.checkbox-item input { margin-right: 8px; cursor: pointer; width: 16px; height: 16px; accent-color: #38bdf8; }
+
+/* Układ kafelków raportu analitycznego jakości regulacji (MSE) */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 10px; }
+/* Pojedynczy kafelek wskaźnika (np. Błąd Średniokwadratowy) */
+.stat-card { background: #1e293b; border: 1px solid #334155; padding: 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+/* Tytuł wskaźnika na kafelku */
+.stat-card .stat-title { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 600; margin-bottom: 4px; }
+/* Duża, czytelna wartość liczbowa wskaźnika */
+.stat-card .stat-value { font-size: 18px; font-weight: bold; color: #f8fafc; font-family: monospace; }
+
+/* Kontenery, w których biblioteka Chart.js rysuje wykresy Canvas */
+.chart-container { 
+	position: relative;        /* Wymóg Chart.js do poprawnego skalowania i pozycjonowania wykresu */
+	margin-top: 15px;          /* Odstęp górny od tytułu sekcji */
+	margin-bottom: 10px;       /* Odstęp dolny od panelu ręcznego skalowania osi */
+	height: 400px;             /* Stała, czytelna wysokość robocza obszaru wykresu */
+	background: #0f172a;       /* Czarne tło bezpośrednio pod wykresem */
+	padding: 10px;             /* Wewnętrzny margines bezpieczeństwa dla osi wykresu */
+	border-radius: 8px;        /* Zaokrąglenie krawędzi czarnego okna wykresu */
+	border: 1px solid #334155; /* Ramka zamykająca okno wykresu */
+}
+/* Paski tytułowe umieszczone bezpośrednio nad wykresami */
+.chart-title {
+	display: flex;             /* Elastyczny układ */
+	justify-content: space-between; /* Tytuł wyrównany do lewej, przycisk resetu do prawej krawędzi */
+	align-items: center;       /* Wyśrodkowanie elementów w pionie */
+	font-size: 17px;           /* Wielkość czcionki opisu wykresu */
+	font-weight: bold;         /* Pogrubienie tytułu wykresu */
+	color: #f8fafc;            /* Śnieżnobiały kolor czcionki nagłówka */
+	margin-top: 35px;          /* Przestrzeń nad sekcją wykresu */
+	margin-bottom: 5px;        /* Odstęp od rysunku wykresu */
+	border-left: 5px solid #38bdf8; /* Ozdobny, pionowy jasnoniebieski pasek akcentujący z lewej strony */
+	padding-left: 10px;        /* Odsunięcie tekstu tytułu od paska ozdobnego */
+}
+/* Przyciski przywracania skali wykresu po użyciu powiększenia kółkiem myszy */
+.btn-reset-zoom { background-color: #334155; color: #f8fafc; padding: 4px 10px; font-size: 11px; border-radius: 4px; border: 1px solid #475569; }
+.btn-reset-zoom:hover { background-color: #475569; }
+
+/* Panel sterowania ręcznym zakresem osi X i Y pod wykresami */
+.axis-control-panel {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	background: #0f172a;
+	padding: 8px 15px;
+	border-radius: 6px;
+	border: 1px solid #334155;
+	margin-bottom: 35px;
+	font-size: 12px;
+}
+
+.axis-control-group {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.axis-control-group label {
+	margin-bottom: 0;
+	font-size: 12px;
+	color: #cbd5e1;
+}
+
+.axis-control-group input {
+	width: 75px;
+	padding: 4px 6px;
+	font-size: 12px;
+	text-align: center;
+}
+
+.axis-control-panel button {
+	padding: 5px 10px;
+	font-size: 12px;
+}
+
+/* Miejsce wyświetlania komunikatów o krytycznych błędach (np. uszkodzony plik) */
+#errorLog { color: #f87171; font-weight: bold; margin-top: 10px; text-align: center; }
+/* Tekst powiadomienia o sukcesie (np. po poprawnym dodaniu nowego uchybu) */
+.success-msg { color: #34d399; font-size: 13px; margin-top: 5px; font-weight: 600; }
