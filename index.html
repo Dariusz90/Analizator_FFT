@@ -25,35 +25,37 @@
     </div>
     
     <!-- GŁÓWNY PANEL KONTROLNY -->
-    <div class="input-group">
-        <!-- Komponent wyboru pliku wejściowego z dysku komputera -->
-        <div class="form-control">
+	<div class="input-group">
+        <!-- 1. Wybór pliku z logami -->
+        <div class="form-control" style="min-width: 220px;">
             <label for="excelFile">Wybierz plik z logami (.csv):</label>
             <input type="file" id="excelFile" accept=".csv">
         </div>
 
-        <!-- Lista rozwijana służąca do wskazania sygnału poddawanego transformacie FFT -->
-        <div class="form-control">
+        <!-- 2. Wybór kolumny sygnałowej -->
+        <div class="form-control" style="min-width: 220px;">
             <label for="columnSelect">Kolumna do analizy FFT (oraz uchyby):</label>
             <select id="columnSelect" disabled>
                 <option>Najpierw załaduj plik...</option>
             </select>
         </div>
 
-        <!-- Pole konfiguracji częstotliwości próbkowania z opcją przełączenia na stałą wartość wyznaczoną ręcznie -->
-        <div class="form-control">
+        <!-- 3. Częstotliwość próbkowania + checkbox umieszczony po prawej stronie pole wpisywania -->
+        <div class="form-control" style="min-width: 380px;">
             <label for="sampleRate">Częstotliwość próbkowania (Hz):</label>
-            <input type="number" id="sampleRate" value="1000" min="0.1" step="any">
-            <div style="margin-top: 6px; display: flex; align-items: center; gap: 6px;">
-                <input type="checkbox" id="manualFsCheck" style="width: 15px; height: 15px; cursor: pointer;">
-                <label for="manualFsCheck" style="margin-bottom: 0; font-size: 12px; cursor: pointer; color: #38bdf8;">Wpisz ręcznie (ignoruj Timestamp)</label>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <input type="number" id="sampleRate" value="1000" min="0.1" step="any" style="width: 110px;">
+                <div style="display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                    <input type="checkbox" id="manualFsCheck" style="width: 15px; height: 15px; cursor: pointer;">
+                    <label for="manualFsCheck" style="margin-bottom: 0; font-size: 12px; cursor: pointer; color: #38bdf8;">Wpisz ręcznie (ignoruj Timestamp)</label>
+                </div>
             </div>
             <div class="info-box" id="fsInfo">Zostanie obliczona automatycznie</div>
         </div>
         
-        <!-- Główny przycisk uruchamiający wszystkie kalkulatory matematyczne i rysowanie -->
-        <div class="form-control" style="justify-content: flex-end;">
-            <button id="processBtn" disabled>Generuj Pełną Analizę</button>
+        <!-- 4. Przycisk 'Generuj Pełną Analizę' w nowym wierszu po lewej stronie pod plikiem -->
+        <div class="form-control" style="flex-basis: 100%; margin-top: 5px;">
+            <button id="processBtn" disabled style="width: fit-content; padding: 8px 24px;">Generuj Pełną Analizę</button>
         </div>
     </div>
 
