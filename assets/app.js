@@ -547,16 +547,19 @@ function processTimeDomainAndStats() {
 
     const checkboxes = document.querySelectorAll('input[name="timeSignals"]:checked'); // Pobranie zaznaczonych checkboxów
     const datasets = []; // Zbiorcza tablica serii wykresu czasowego Chart.js
+    const signalData = [];
     let statsHTML = "";  // Łańcuch tekstowy HTML, do którego dokleimy wygenerowane raporty kafelkowe
 
     // Przetwarzanie każdej zaznaczonej serii danych
     checkboxes.forEach((cb, index) => {
         let sigInfo = getSignalData(cb.value); // Wyciągnięcie danych liczbowych sygnału
+        const plottedData = plottedIndices.map(rowIndex => sigInfo.data[rowIndex]);
+        signalData.push({ name: sigInfo.name, data: plottedData });
 
         // Budowanie struktury konfiguracyjnej serii dla Chart.js
         datasets.push({
             label: sigInfo.name, // Nazwa wyświetlana w legendzie wykresu
-            data: plottedIndices.map(index => sigInfo.data[index]),  // Tablica punktów czasowych Y dla wybranego zakresu
+            data: plottedData,  // Tablica punktów czasowych Y dla wybranego zakresu
             borderColor: lineColors[index % lineColors.length], // Przypisanie kolejnego koloru z unikalnej palety neonowej
             backgroundColor: 'transparent', // Brak wypełnienia obszaru pod linią (zapewnia przejrzystość)
             borderWidth: 1.5,               // Grubość rysowanej linii przebiegu
@@ -608,8 +611,110 @@ function processTimeDomainAndStats() {
     // Wstrzyknięcie gotowego bloku HTML z statystykami na stronę www
     document.getElementById('statsGrid').innerHTML = statsHTML || "Nie zaznaczono żadnych linii sygnałowych.";
     
+    updateSignalDelayInfo(timeLabels, signalData);
+
     // Wywołanie procedury rysującej wykres osi czasu Chart.js
     drawTimeChart(timeLabels, datasets);
+}
+
+function estimateSignalDelay(times, firstSignal, secondSignal) {
+    const maxPoints = 5000;
+    const stride = Math.max(1, Math.ceil(times.length / maxPoints));
+    const sampledTimes = [];
+    const first = [];
+    const second = [];
+
+    for (let i = 0; i < times.length; i += stride) {
+        sampledTimes.push(times[i]);
+        first.push(firstSignal[i]);
+        second.push(secondSignal[i]);
+    }
+
+    if (sampledTimes.length < 8) return null;
+
+    const maxLag = Math.floor(sampledTimes.length / 4);
+    let bestCorrelation = -Infinity;
+    let bestLag = 0;
+
+    for (let lag = -maxLag; lag <= maxLag; lag++) {
+        let count = 0;
+        let meanFirst = 0;
+        let meanSecond = 0;
+        let covariance = 0;
+        let varianceFirst = 0;
+        let varianceSecond = 0;
+
+        for (let i = 0; i < sampledTimes.length; i++) {
+            const secondIndex = i + lag;
+            if (secondIndex < 0 || secondIndex >= sampledTimes.length) continue;
+            const firstValue = first[i];
+            const secondValue = second[secondIndex];
+            if (!Number.isFinite(firstValue) || !Number.isFinite(secondValue)) continue;
+
+            count++;
+            const differenceFirst = firstValue - meanFirst;
+            const differenceSecond = secondValue - meanSecond;
+            meanFirst += differenceFirst / count;
+            meanSecond += differenceSecond / count;
+            covariance += differenceFirst * (secondValue - meanSecond);
+            varianceFirst += differenceFirst * (firstValue - meanFirst);
+            varianceSecond += differenceSecond * (secondValue - meanSecond);
+        }
+
+        if (count < 8) continue;
+        const denominator = Math.sqrt(varianceFirst * varianceSecond);
+        if (denominator === 0) continue;
+
+        const correlation = covariance / denominator;
+        if (correlation > bestCorrelation) {
+            bestCorrelation = correlation;
+            bestLag = lag;
+        }
+    }
+
+    if (!Number.isFinite(bestCorrelation)) return null;
+
+    let intervalSum = 0;
+    let intervalCount = 0;
+    for (let i = 0; i + stride < times.length; i++) {
+        const interval = times[i + stride] - times[i];
+        if (Number.isFinite(interval) && interval > 0) {
+            intervalSum += interval;
+            intervalCount++;
+        }
+    }
+    if (!intervalCount) return null;
+
+    return {
+        delayMs: bestLag * intervalSum / intervalCount,
+        correlation: bestCorrelation,
+        resolutionMs: intervalSum / intervalCount
+    };
+}
+
+function updateSignalDelayInfo(times, signals) {
+    const info = document.getElementById('signalDelayInfo');
+    info.style.display = 'block';
+
+    if (signals.length < 2) {
+        info.textContent = 'Zaznacz co najmniej dwa sygnały, aby oszacować opóźnienie między nimi.';
+        return;
+    }
+
+    const first = signals[0];
+    const second = signals[1];
+    const estimate = estimateSignalDelay(times, first.data, second.data);
+    if (!estimate) {
+        info.textContent = `Nie można oszacować opóźnienia między sygnałami „${first.name}” i „${second.name}”. Sprawdź, czy zawierają zmienne wartości i wystarczająco dużo wspólnych próbek.`;
+        return;
+    }
+
+    const direction = estimate.delayMs > 0
+        ? `sygnał „${second.name}” jest opóźniony`
+        : estimate.delayMs < 0
+            ? `sygnał „${second.name}” wyprzedza`
+            : 'sygnały nie wykazują przesunięcia';
+    info.textContent = `Szacowane opóźnienie sygnału „${second.name}” względem „${first.name}”: ${estimate.delayMs.toFixed(3)} ms (${direction}). Korelacja: ${estimate.correlation.toFixed(3)}; rozdzielczość: około ${estimate.resolutionMs.toFixed(3)} ms.`;
 }
 
 /**

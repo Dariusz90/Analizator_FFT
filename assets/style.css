@@ -147,6 +147,17 @@ button:disabled {
     }
 }
 
+.delay-info {
+    margin: 10px 0 15px;
+    padding: 12px 15px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-left: 4px solid #38bdf8;
+    border-radius: 6px;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
 /* Wspólna klasa dla wszystkich bloków rozwijanych dynamicznie po załadowaniu danych */
 .params-section, .creator-section, .checkbox-section, .stats-section {
 	margin-bottom: 25px;       /* Przestrzeń separująca poszczególne moduły */
