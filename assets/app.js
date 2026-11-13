@@ -5,6 +5,7 @@ let rawData = [];            // Dwuwymiarowa tablica przechowująca wszystkie wi
 let headers = [];            // Tablica jednowymiarowa zawierająca czyste nazwy kolumn pobrane z pierwszego wiersza pliku
 let virtualColumns = [];      // Rejestr (tablica obiektów) przechowujący uchyby matematyczne wygenerowane przez użytkownika w kreatorze
 let defaultErrorCounter = 1;    // Globalny licznik pomocniczy służący do automatycznego numerowania nazw kolejnych uchybów
+let activeRowIndices = [];
 
 // Referencje do instancji obiektów Chart.js. Kluczowe, by móc wyczyścić i usunąć wykres z pamięci RAM przed narysowaniem nowego
 let fftChartInstance = null;  
@@ -33,6 +34,12 @@ Chart.defaults.plugins.legend.labels.color = '#cbd5e1'; // Kolor czcionek legend
 // Rejestracja detektorów zdarzeń (Event Listeners) przypisujących akcje do przycisków w interfejsie użytkownika
 document.getElementById('excelFile').addEventListener('change', handleFile, false); // Wybór pliku inicjuje proces odczytu
 document.getElementById('processBtn').addEventListener('click', processAll, false);  // Przycisk "Generuj Pełną Analizę" wyzwala obliczenia
+document.getElementById('applyRangeBtn').addEventListener('click', processAll, false);
+document.getElementById('resetRangeBtn').addEventListener('click', function() {
+    document.getElementById('rangeStart').value = '';
+    document.getElementById('rangeEnd').value = '';
+    processAll();
+}, false);
 document.getElementById('addErrorBtn').addEventListener('click', addNewVirtualError, false); // Przycisk dodawania uchybu w kreatorze
 
 // Zdarzenie zmiany stanu checkboxa "Wpisz ręcznie (ignoruj Timestamp)"
@@ -46,7 +53,94 @@ document.getElementById('manualFsCheck').addEventListener('change', function(e) 
         // Jeśli plik z danymi jest już załadowany w pamięci, przeliczamy ponownie domyślną częstotliwość z kolumny 0
         if (rawData.length > 0) calculateAutoSampleRate();
     }
+    updateTimeRangeInfo();
 });
+document.getElementById('sampleRate').addEventListener('input', updateTimeRangeInfo, false);
+
+function parseCsvNumber(value) {
+    if (value === undefined || value === null) return NaN;
+    return parseFloat(value.toString().replace(',', '.'));
+}
+
+function getSampleTime(index) {
+    if (document.getElementById('manualFsCheck').checked) {
+        const sampleRate = parseCsvNumber(document.getElementById('sampleRate').value);
+        return sampleRate > 0 ? index * 1000 / sampleRate : NaN;
+    }
+    return parseCsvNumber(rawData[index] && rawData[index][0]);
+}
+
+function getLogStartTime() {
+    if (document.getElementById('manualFsCheck').checked) return 0;
+    for (let i = 0; i < rawData.length; i++) {
+        const time = getSampleTime(i);
+        if (Number.isFinite(time)) return time;
+    }
+    return NaN;
+}
+
+function getSampleOffsetSeconds(index, logStartTime) {
+    const time = getSampleTime(index);
+    return Number.isFinite(time) && Number.isFinite(logStartTime)
+        ? (time - logStartTime) / 1000
+        : NaN;
+}
+
+function getRequestedRowIndices() {
+    const startText = document.getElementById('rangeStart').value.trim();
+    const endText = document.getElementById('rangeEnd').value.trim();
+    const start = startText === '' ? null : Number(startText.replace(',', '.'));
+    const end = endText === '' ? null : Number(endText.replace(',', '.'));
+
+    if ((start !== null && !Number.isFinite(start)) || (end !== null && !Number.isFinite(end))) {
+        return { error: 'Wpisz poprawny początek i koniec zakresu (s).' };
+    }
+    if (start !== null && end !== null && start > end) {
+        return { error: 'Początek zakresu nie może być późniejszy niż jego koniec.' };
+    }
+    if (document.getElementById('manualFsCheck').checked &&
+        (!Number.isFinite(parseCsvNumber(document.getElementById('sampleRate').value)) ||
+         parseCsvNumber(document.getElementById('sampleRate').value) <= 0)) {
+        return { error: 'W trybie ręcznym wpisz poprawną częstotliwość próbkowania.' };
+    }
+    if (start === null && end === null) {
+        return { indices: rawData.map((row, index) => index) };
+    }
+
+    const indices = [];
+    const logStartTime = getLogStartTime();
+    for (let i = 0; i < rawData.length; i++) {
+        const offset = getSampleOffsetSeconds(i, logStartTime);
+        if (!Number.isFinite(offset)) continue;
+        if (start !== null && offset < start) continue;
+        if (end !== null && offset > end) continue;
+        indices.push(i);
+    }
+    if ((start !== null || end !== null) && indices.length < 8) {
+        return { error: `Wybrany zakres zawiera ${indices.length} próbek. Do analizy FFT potrzeba co najmniej 8.` };
+    }
+    return { indices: indices };
+}
+
+function updateTimeRangeInfo() {
+    const info = document.getElementById('rangeInfo');
+    if (!rawData.length) return;
+
+    let minOffset = Infinity;
+    let maxOffset = -Infinity;
+    const logStartTime = getLogStartTime();
+    for (let i = 0; i < rawData.length; i++) {
+        const offset = getSampleOffsetSeconds(i, logStartTime);
+        if (!Number.isFinite(offset)) continue;
+        minOffset = Math.min(minOffset, offset);
+        maxOffset = Math.max(maxOffset, offset);
+    }
+    if (minOffset === Infinity) {
+        info.innerText = 'Brak poprawnych znaczników czasu. Wybierz ręczną częstotliwość próbkowania.';
+        return;
+    }
+    info.innerText = `Dostępny czas od początku logu: ${minOffset.toFixed(3)}–${maxOffset.toFixed(3)} s.`;
+}
 
 /**
  * Szybka Transformata Fouriera (FFT) zaimplementowana w klasycznym algorytmie dziesiątkowania w dziedzinie czasu (Cooley-Tukey Radix-2).
@@ -94,7 +188,7 @@ function calculateAutoSampleRate() {
     if (document.getElementById('manualFsCheck').checked) return;
 
     // Pobieramy kolumnę o indeksie 0 (zawsze Timestamp) i parsujemy ją na liczby, odrzucając błędy NaN
-    let timestamps = rawData.map(row => parseFloat(row[0])).filter(val => !isNaN(val));
+    let timestamps = rawData.map(row => parseCsvNumber(row[0])).filter(val => !isNaN(val));
     if (timestamps.length >= 2) {
         let diffSum = 0;  // Suma różnic czasowych pomiędzy próbkami
         let count = 0;    // Licznik poprawnych przejść pętli
@@ -150,9 +244,13 @@ function handleFile(e) {
             const columns = lines[i].split(';');  // Podział linii na pojedyncze komórki liczbowe
             rawData.push(columns);                // Wrzucenie wiersza danych do bazy
         }
+        activeRowIndices = rawData.map((row, index) => index);
+        document.getElementById('rangeStart').value = '';
+        document.getElementById('rangeEnd').value = '';
 
         // Automatyczne obliczenie częstotliwości z pliku (wykonywane tylko, jeśli nie włączono trybu ręcznego)
         calculateAutoSampleRate();
+        updateTimeRangeInfo();
 
         // Resetowanie pamięci podręcznej wirtualnych uchybów przy ładowaniu zupełnie nowego logu maszynowego
         virtualColumns = []; 
@@ -187,6 +285,8 @@ function handleFile(e) {
         // Odblokowanie przycisków sterujących, które były zamrożone do czasu wgrania logu
         document.getElementById('columnSelect').disabled = false;
         document.getElementById('processBtn').disabled = false;
+        document.getElementById('applyRangeBtn').disabled = false;
+        document.getElementById('resetRangeBtn').disabled = false;
         showError(""); // Czyszczenie starych logów awarii
         document.getElementById('creatorFeedback').innerText = ""; // Czyszczenie komunikatów kreatora
     };
@@ -344,6 +444,14 @@ function getSignalData(id) {
  * po czym sekwencyjnie uruchamia dedykowane silniki obliczeniowo-renderujące dla każdego modułu.
  */
 function processAll() {
+    const requestedRange = getRequestedRowIndices();
+    if (requestedRange.error) {
+        showError(requestedRange.error);
+        return;
+    }
+    activeRowIndices = requestedRange.indices;
+    showError('');
+
     // Odkrycie wszystkich ukrytych sekcji wykresów, paneli sterowania oraz statystyk w strukturze HTML
     document.getElementById('titleFFT').style.display = 'flex';
     document.getElementById('containerFFT').style.display = 'block';
@@ -378,7 +486,7 @@ function processFFT() {
     if (isNaN(sampleRate) || sampleRate <= 0) return;
 
     let sigInfo = getSignalData(columnId); // Pobranie ujednoliconego obiektu sygnału
-    let signal = sigInfo.data.filter(val => !isNaN(val)); // Odcięcie pustych rekordów lub uszkodzonych próbek (NaN)
+    let signal = activeRowIndices.map(index => sigInfo.data[index]).filter(val => !isNaN(val)); // Ograniczenie analizy do wybranego czasu i odrzucenie uszkodzonych próbek
 
     if (signal.length < 8) return; // Zabezpieczenie przed zbyt krótką serią danych do analizy częstotliwościowej
 
@@ -434,22 +542,8 @@ function processFFT() {
  * oraz wylicza zaawansowane wskaźniki jakości: Błąd Średniokwadratowy (MSE) oraz rozstęp Peak-to-Peak.
  */
 function processTimeDomainAndStats() {
-    const isManualFs = document.getElementById('manualFsCheck').checked;
-    const sampleRate = parseFloat(document.getElementById('sampleRate').value);
-    
-    let timeLabels = [];
-
-    // --- SPOSÓB GENEROWANIA OSI CZASU X ---
-    // Jeśli użytkownik zaznaczył opcję ręcznego ustawiania Fs, generujemy idealną, sztuczną oś czasu opartą na stałym kroku dt:
-    if (isManualFs && !isNaN(sampleRate) && sampleRate > 0) {
-        let dtMs = 1000 / sampleRate; // Wyliczenie stałego okresu w milisekundach dla wpisanej częstotliwości Fs
-        for (let i = 0; i < rawData.length; i++) {
-            timeLabels.push(parseFloat((i * dtMs).toFixed(3)));
-        }
-    } else {
-        // Tryb domyślny: pobieramy stemplowanie czasowe bezpośrednio z 0-szej kolumny Timestamp z pliku logu
-        timeLabels = rawData.map(row => parseFloat(row[0])).filter(val => !isNaN(val));
-    }
+    const plottedIndices = activeRowIndices.filter(index => Number.isFinite(getSampleTime(index)));
+    const timeLabels = plottedIndices.map(index => getSampleTime(index));
 
     const checkboxes = document.querySelectorAll('input[name="timeSignals"]:checked'); // Pobranie zaznaczonych checkboxów
     const datasets = []; // Zbiorcza tablica serii wykresu czasowego Chart.js
@@ -462,7 +556,7 @@ function processTimeDomainAndStats() {
         // Budowanie struktury konfiguracyjnej serii dla Chart.js
         datasets.push({
             label: sigInfo.name, // Nazwa wyświetlana w legendzie wykresu
-            data: sigInfo.data,  // Tablica punktów czasowych Y
+            data: plottedIndices.map(index => sigInfo.data[index]),  // Tablica punktów czasowych Y dla wybranego zakresu
             borderColor: lineColors[index % lineColors.length], // Przypisanie kolejnego koloru z unikalnej palety neonowej
             backgroundColor: 'transparent', // Brak wypełnienia obszaru pod linią (zapewnia przejrzystość)
             borderWidth: 1.5,               // Grubość rysowanej linii przebiegu
@@ -472,7 +566,7 @@ function processTimeDomainAndStats() {
         });
 
         // --- PRZETWARZANIE AGREGATÓW STATYSTYCZNYCH SERII ---
-        let cleanData = sigInfo.data.filter(v => !isNaN(v)); // Odrzucenie rekordów uszkodzonych
+        let cleanData = activeRowIndices.map(index => sigInfo.data[index]).filter(v => !isNaN(v)); // Odrzucenie rekordów poza zakresem i uszkodzonych
         if(cleanData.length > 0) {
             let min = Math.min(...cleanData); // Wyznaczenie najmniejszej zarejestrowanej wartości w logu
             let max = Math.max(...cleanData); // Wyznaczenie największej zarejestrowanej wartości w logu
@@ -536,8 +630,8 @@ function processJitterAnalysis() {
         
         let syntheticLabels = [];
         let syntheticData = [];
-        for (let i = 0; i < rawData.length; i++) {
-            syntheticLabels.push((i * dtMs).toFixed(2));
+        for (const index of activeRowIndices) {
+            syntheticLabels.push((index * dtMs).toFixed(2));
             syntheticData.push(dtMs);
         }
         drawJitterChart(syntheticLabels, syntheticData);
@@ -545,7 +639,7 @@ function processJitterAnalysis() {
     }
 
     // Standardowa analiza oparta na wyliczaniu rzeczywistych delit dt z kolumny Timestamp
-    let timestamps = rawData.map(row => parseFloat(row[0])).filter(val => !isNaN(val)); // Pobranie osi czasu
+    let timestamps = activeRowIndices.map(index => getSampleTime(index)).filter(val => !isNaN(val)); // Pobranie osi czasu z wybranego zakresu
     if (timestamps.length < 2) return;
 
     let jitterData = [];     // Tablica wartości osi pionowej Y (wyliczone odstępy czasowe dt)

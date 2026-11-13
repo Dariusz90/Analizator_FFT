@@ -118,6 +118,29 @@ button:disabled {
     margin-top: 3px; 
 }
 
+.time-range-group {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-end;
+    gap: 10px;
+    flex: 0 1 auto;
+}
+
+.time-range-control {
+    flex: 0 1 200px;
+    min-width: 150px;
+}
+
+.time-range-info {
+    flex-basis: 100%;
+}
+
+.time-range-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 /* Wspólna klasa dla wszystkich bloków rozwijanych dynamicznie po załadowaniu danych */
 .params-section, .creator-section, .checkbox-section, .stats-section {
 	margin-bottom: 25px;       /* Przestrzeń separująca poszczególne moduły */

@@ -21,7 +21,7 @@
     <!-- Pasek nagłówka z umieszczonym numerem rewizji strony -->
     <div class="header-container">
         <h1>Analizator FFT z logów Blackboxa</h1>
-        <div class="revision-badge">v1.4</div>
+        <div class="revision-badge">v1.5</div>
     </div>
     
     <!-- GŁÓWNY PANEL KONTROLNY -->
@@ -52,11 +52,24 @@
             </div>
             <div class="info-box" id="fsInfo">Zostanie obliczona automatycznie</div>
         </div>
-        
+
         <!-- 4. Przycisk 'Generuj Pełną Analizę' w nowym wierszu po lewej stronie pod plikiem -->
-        <div class="form-control" style="flex-basis: 100%; margin-top: 5px;">
+        <div class="form-control time-range-actions" style="flex-basis: 100%; margin-top: 5px; flex-direction: row; align-items: center;">
             <button id="processBtn" disabled style="width: fit-content; padding: 8px 24px;">Generuj Pełną Analizę</button>
+            <div class="time-range-group">
+                <div class="form-control time-range-control">
+                    <label for="rangeStart">Początek zakresu (s):</label>
+                    <input type="number" id="rangeStart" step="any" placeholder="np. 1.001">
+                </div>
+                <div class="form-control time-range-control">
+                    <label for="rangeEnd">Koniec zakresu (s):</label>
+                    <input type="number" id="rangeEnd" step="any" placeholder="np. 2.001">
+                </div>
+            </div>
+            <button id="applyRangeBtn" disabled style="background-color:#0284c7;">Zastosuj zakres czasu</button>
+            <button id="resetRangeBtn" disabled style="background-color:#334155; color:#cbd5e1;">Pokaż cały log</button>
         </div>
+        <div class="info-box time-range-info" id="rangeInfo">Wczytaj log, aby poznać dostępny czas od początku logu.</div>
     </div>
 
     <!-- KREATOR WIRTUALNYCH UCHYBÓW REGULACJI -->
