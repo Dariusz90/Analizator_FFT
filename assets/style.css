@@ -118,17 +118,14 @@ button:disabled {
     margin-top: 3px; 
 }
 
-.time-range-group {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: flex-end;
-    gap: 10px;
-    flex: 0 1 auto;
+.time-range-control {
+    flex: none;
+    min-width: 0;
 }
 
-.time-range-control {
-    flex: 0 1 200px;
-    min-width: 150px;
+.time-range-control input {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .time-range-info {
@@ -136,9 +133,18 @@ button:disabled {
 }
 
 .time-range-actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: max-content minmax(140px, 1fr) minmax(140px, 1fr) max-content max-content;
+    align-items: end;
     gap: 10px;
+    flex-basis: 100%;
+    margin-top: 5px;
+}
+
+@media (max-width: 900px) {
+    .time-range-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 /* Wspólna klasa dla wszystkich bloków rozwijanych dynamicznie po załadowaniu danych */

@@ -54,17 +54,15 @@
         </div>
 
         <!-- 4. Przycisk 'Generuj Pełną Analizę' w nowym wierszu po lewej stronie pod plikiem -->
-        <div class="form-control time-range-actions" style="flex-basis: 100%; margin-top: 5px; flex-direction: row; align-items: center;">
+        <div class="time-range-actions">
             <button id="processBtn" disabled style="width: fit-content; padding: 8px 24px;">Generuj Pełną Analizę</button>
-            <div class="time-range-group">
-                <div class="form-control time-range-control">
-                    <label for="rangeStart">Początek zakresu (s):</label>
-                    <input type="number" id="rangeStart" step="any" placeholder="np. 1.001">
-                </div>
-                <div class="form-control time-range-control">
-                    <label for="rangeEnd">Koniec zakresu (s):</label>
-                    <input type="number" id="rangeEnd" step="any" placeholder="np. 2.001">
-                </div>
+            <div class="form-control time-range-control">
+                <label for="rangeStart">Początek zakresu (s):</label>
+                <input type="number" id="rangeStart" step="any" placeholder="np. 1.001">
+            </div>
+            <div class="form-control time-range-control">
+                <label for="rangeEnd">Koniec zakresu (s):</label>
+                <input type="number" id="rangeEnd" step="any" placeholder="np. 2.001">
             </div>
             <button id="applyRangeBtn" disabled style="background-color:#0284c7;">Zastosuj zakres czasu</button>
             <button id="resetRangeBtn" disabled style="background-color:#334155; color:#cbd5e1;">Pokaż cały log</button>
